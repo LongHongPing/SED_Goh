@@ -8,11 +8,10 @@ import java.util.Random;
 
 public class EncUtil {
     public static EncUtil encUtil;
-    public static byte[][] trapDoors;
-    public static byte[][] codeWords;
+    public static ArrayList<ArrayList<Byte>> trapDoors;
+    public static ArrayList<ArrayList<Byte>> codeWords;
     public static BloomFilter index;
 
-    private static int cnt = 1;
     /** 懒汉式单例 双重锁*/
     private EncUtil(){
 
@@ -61,45 +60,55 @@ public class EncUtil {
         return null;
     }
     /** 生成随机字节数组 */
-    public static byte[] genRandomBytes(int n){
-        byte[] byteArray = new byte[n];
-        new Random(0).nextBytes(byteArray);
+    public static ArrayList<Byte> genRandomBytes(long n){
+        ArrayList<Byte> byteArray = new ArrayList<>();
+        //new Random(0).nextBytes(byteArray);
+        byteArray.add((byte) new Random(0).nextInt());
         return byteArray;
     }
-    /** 追加内容 */
-    public static byte[][] append(byte[][] byts, byte[] byt) {
-
-        return byts;
+    /** 生成密钥 */
+    public static ArrayList<ArrayList<Byte>> genHashKeys(double fp){
+        double kHash = Math.round(Math.abs(-(Math.log(fp))));
+        ArrayList<ArrayList<Byte>> keys = new ArrayList<>();
+        for(int i = 0; i <= (int)kHash;i++){
+            ArrayList<Byte> key = genRandomBytes(16);
+            //keys = HexUtil.append(keys,key);
+            keys.add(key);
+        }
+        return keys;
     }
+
     /** 创建HMAC */
-    public static byte[] createHmac(String data,byte[] key) throws Exception{
+    public static ArrayList<Byte> createHmac(String data,ArrayList<Byte> key) throws Exception{
         Mac Hmac = Mac.getInstance("HmacSHA256");
-        SecretKeySpec secret_key = new SecretKeySpec(key, "HmacSHA256");
+        SecretKeySpec secret_key = new SecretKeySpec(HexUtil.arrayToByte(key), "HmacSHA256");
         Hmac.init(secret_key);
-        return Hmac.doFinal(data.getBytes("UTF-8"));
+        return HexUtil.byteToArray(Hmac.doFinal(data.getBytes("UTF-8")));
     }
     /** 创建陷门、码字 */
-    public static byte[][] buildTrapCode(String keyword,byte[][] keys)throws Exception{
-        byte[][] trapCodes = new byte[cnt][];
-        for(byte[] key : keys){
-            byte[] trapCode = createHmac(keyword,key);
-            trapCodes = append(trapCodes,trapCode);
+    public static ArrayList<ArrayList<Byte>> buildTrapCode(String keyword,ArrayList<ArrayList<Byte>> keys)throws Exception{
+        ArrayList<ArrayList<Byte>> trapCodes = new ArrayList<>();
+        for(ArrayList<Byte> key : keys){
+            ArrayList<Byte> trapCode = createHmac(keyword,key);
+           // trapCodes = HexUtil.append(trapCodes,trapCode);
+            trapCodes.add(trapCode);
         }
         return trapCodes;
     }
 
     /** 建立 */
-    public static void build(String fileName,String keyword,byte[][] keys)throws Exception{
+    public static void build(String fileName,String keyword,ArrayList<ArrayList<Byte>> keys)throws Exception{
         trapDoors = buildTrapCode(keyword,keys);
         codeWords = buildTrapCode(fileName,trapDoors);
     }
     /** 安全索引盲化 */
-    public static void blind(int numKeywords,int docSize,int numKeys){
-        int blindFactor = (docSize - numKeywords) * numKeys;
-        //ArrayList<ArrayList<Byte>> blinding = new ArrayList<>();
-        byte[][] blinding = new byte[cnt][];
-        byte[] randomBytes = genRandomBytes(blindFactor);
-        blinding = append(blinding,randomBytes);
+    public static void blind(int numKeywords,long docSize,int numKeys){
+        long blindFactor = (docSize - numKeywords) * numKeys;
+        ArrayList<ArrayList<Byte>> blinding = new ArrayList<>();
+        //ArrayList<ArrayList<Byte>> blinding = new byte[cnt][];
+        ArrayList<Byte> randomBytes = genRandomBytes(blindFactor);
+      //  blinding = HexUtil.append(blinding,randomBytes);
+        blinding.add(randomBytes);
         index.add(blinding);
     }
 }

@@ -34,7 +34,12 @@ public class FileUtil {
         return files;
     }
     /** 获取明文中的单个词语 */
-    public static List<String> getWords(String content) {
+    public static List<String> getWords(File file) throws Exception{
+        String filePath = file.getPath();
+        String content = read(filePath,"UTF-8");
+        return getWords(content);
+    }
+    public static List<String> getWords(String content) throws Exception{
         String pattern = "(\\w[\\w']*\\w|\\w)";
         Pattern regex = Pattern.compile(pattern);
         Matcher matcher = regex.matcher(content);

@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 /** 数据处理工具类 */
 public class HexUtil {
     /** 长度调整 */
@@ -71,5 +73,23 @@ public class HexUtil {
             result[i] = (char)intToChar(ci);
         }
         return result;
+    }
+    /** 将arraylist换为byte */
+    public static byte[] arrayToByte(ArrayList<Byte> arrayList){
+        int len = arrayList.size();
+        byte[] bts = new byte[len];
+        int cnt = 0;
+        for (byte bt : arrayList){
+            bts[cnt++] = bt;
+        }
+        return bts;
+    }
+    /** 将byte换为arraylist */
+    public static ArrayList<Byte> byteToArray(byte[] bts){
+        ArrayList<Byte> arrayList = new ArrayList<>();
+        for(byte bt : bts){
+            arrayList.add(bt);
+        }
+        return arrayList;
     }
 }
