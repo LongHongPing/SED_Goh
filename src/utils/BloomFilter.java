@@ -1,5 +1,6 @@
+package utils;
+
 import java.util.ArrayList;
-import java.util.BitSet;
 
 /** 布隆过滤器 */
 public class BloomFilter {
@@ -8,40 +9,42 @@ public class BloomFilter {
     private SimpleHash[] func = new SimpleHash[seeds.length];
     public boolean[] bits = new boolean[DEFAULT_SIZE];
 
-    private static int cnt = 1;
     /** 布隆过滤器 */
     public BloomFilter() {
         for (int i = 0; i < seeds.length; i++) {
             func[i] = new SimpleHash(DEFAULT_SIZE, seeds[i]);
         }
     }
+    public BloomFilter(ArrayList<Boolean> index){
+
+    }
     /** 映射码字到过滤器相应位置 */
-    public static ArrayList<Integer> findPosition(ArrayList<ArrayList<Byte>> codeWords,int filterSize){
+    public static ArrayList<Integer> findPosition(ArrayList<byte[]> codeWords){
         //int[] indexPositions = new int[cnt];
         ArrayList<Integer> indexPositions = new ArrayList<>();
-        for(ArrayList<Byte> codeWord : codeWords){
-            int x = 0;
-           // indexPositions = HexUtil.append(indexPositions,);
+        int i = 0;
+        for(byte[] codeWord : codeWords){
+            int x = codeWord[i++];
             indexPositions.add(x%DEFAULT_SIZE);
         }
         return indexPositions;
     }
 
     /** 添加内容 */
-    public void add(ArrayList<ArrayList<Byte>> codeWords) {
-       ArrayList<Integer> position = findPosition(codeWords,DEFAULT_SIZE);
+    public void add(ArrayList<byte[]> codeWords) {
+       ArrayList<Integer> position = findPosition(codeWords);
         for (int i : position) {
             bits[i] = true;
         }
 
     }
     /** 检验内容 */
-    public boolean check(ArrayList<ArrayList<Byte>> value) {
+    public boolean check(ArrayList<byte[]> value) {
         if (value == null) {
             return false;
         }
         boolean ret = true;
-        ArrayList<Integer> position = findPosition(value,DEFAULT_SIZE);
+        ArrayList<Integer> position = findPosition(value);
         for (int i : position) {
             ret = ret && bits[i];
         }

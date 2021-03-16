@@ -1,0 +1,8 @@
+this is test text2!
+Function to handle the processing of keyword trapdoors received from tcp client
+This script used to search a series of secure indexes using a given trapdoor (generated client-side) for a keyword  *
+ * Source ref: crypto.stanford.edu/~eujin/papers/secureindex/secureindex.pdf
+  */
+crytographically secure arrays of random bytes and
+HMAC SHA-256 cryptographi
+Regexp string of English language stopword

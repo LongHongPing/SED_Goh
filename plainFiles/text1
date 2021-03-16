@@ -1,0 +1,6 @@
+this is test text1!
+cryptoUtils SecureIndex
+for keyword range text Keywords sIndex.Build(fname, keyword, hashKeys)
+	sIndex.Index.Add(sIndex.Codewords)
+
+ryptoUtils.Encrypt(file, keyFiledir+fname)

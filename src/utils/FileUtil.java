@@ -1,3 +1,5 @@
+package utils;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +24,9 @@ public class FileUtil {
     /** 向文件写入结果 */
     public static void write(String content,String path, String charset) throws IOException {
         File file = new File(path);
+        if(!file.exists()){
+            file.createNewFile();
+        }
         FileOutputStream fileOutputStream = new FileOutputStream(file,true);
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fileOutputStream, charset);
         outputStreamWriter.append(content);

@@ -1,16 +1,17 @@
-/** 加密工具类 */
+package utils;
+
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Random;
-
+/** 加密工具类 */
 public class EncUtil {
     public static EncUtil encUtil;
-    public static ArrayList<ArrayList<Byte>> trapDoors;
-    public static ArrayList<ArrayList<Byte>> codeWords;
-    public static BloomFilter index;
+    public static ArrayList<byte[]> trapDoors;
+    public static ArrayList<byte[]> codeWords;
+    public static BloomFilter index = new BloomFilter();
 
     /** 懒汉式单例 双重锁*/
     private EncUtil(){
@@ -60,54 +61,55 @@ public class EncUtil {
         return null;
     }
     /** 生成随机字节数组 */
-    public static ArrayList<Byte> genRandomBytes(long n){
-        ArrayList<Byte> byteArray = new ArrayList<>();
-        //new Random(0).nextBytes(byteArray);
-        byteArray.add((byte) new Random(0).nextInt());
-        return byteArray;
+    public static byte[] genRandomBytes(int size){
+        byte[] salt = new byte[size];
+        SecureRandom random = new SecureRandom();
+        random.setSeed(0);
+        random.nextBytes(salt);
+        return salt;
     }
     /** 生成密钥 */
-    public static ArrayList<ArrayList<Byte>> genHashKeys(double fp){
+    public static ArrayList<byte[]> genHashKeys(double fp){
         double kHash = Math.round(Math.abs(-(Math.log(fp))));
-        ArrayList<ArrayList<Byte>> keys = new ArrayList<>();
+        ArrayList<byte[]> keys = new ArrayList<>();
         for(int i = 0; i <= (int)kHash;i++){
-            ArrayList<Byte> key = genRandomBytes(16);
-            //keys = HexUtil.append(keys,key);
+            byte[] key = genRandomBytes(16);
+            //keys = utils.HexUtil.append(keys,key);
             keys.add(key);
         }
         return keys;
     }
 
     /** 创建HMAC */
-    public static ArrayList<Byte> createHmac(String data,ArrayList<Byte> key) throws Exception{
+    public static byte[] createHmac(String data,byte[] key) throws Exception{
         Mac Hmac = Mac.getInstance("HmacSHA256");
-        SecretKeySpec secret_key = new SecretKeySpec(HexUtil.arrayToByte(key), "HmacSHA256");
+        SecretKeySpec secret_key = new SecretKeySpec(key, "HmacSHA256");
         Hmac.init(secret_key);
-        return HexUtil.byteToArray(Hmac.doFinal(data.getBytes("UTF-8")));
+        return Hmac.doFinal(data.getBytes("UTF-8"));
     }
     /** 创建陷门、码字 */
-    public static ArrayList<ArrayList<Byte>> buildTrapCode(String keyword,ArrayList<ArrayList<Byte>> keys)throws Exception{
-        ArrayList<ArrayList<Byte>> trapCodes = new ArrayList<>();
-        for(ArrayList<Byte> key : keys){
-            ArrayList<Byte> trapCode = createHmac(keyword,key);
-           // trapCodes = HexUtil.append(trapCodes,trapCode);
+    public static ArrayList<byte[]> buildTrapCode(String keyword,ArrayList<byte[]> keys)throws Exception{
+        ArrayList<byte[]> trapCodes = new ArrayList<>();
+        for(byte[] key : keys){
+            byte[] trapCode = createHmac(keyword,key);
+           // trapCodes = utils.HexUtil.append(trapCodes,trapCode);
             trapCodes.add(trapCode);
         }
         return trapCodes;
     }
 
     /** 建立 */
-    public static void build(String fileName,String keyword,ArrayList<ArrayList<Byte>> keys)throws Exception{
+    public static void build(String fileName,String keyword,ArrayList<byte[]> keys)throws Exception{
         trapDoors = buildTrapCode(keyword,keys);
         codeWords = buildTrapCode(fileName,trapDoors);
     }
     /** 安全索引盲化 */
-    public static void blind(int numKeywords,long docSize,int numKeys){
-        long blindFactor = (docSize - numKeywords) * numKeys;
-        ArrayList<ArrayList<Byte>> blinding = new ArrayList<>();
+    public static void blind(int numKeywords,int docSize,int numKeys){
+        int blindFactor = (docSize - numKeywords) * numKeys;
+        ArrayList<byte[]> blinding = new ArrayList<>();
         //ArrayList<ArrayList<Byte>> blinding = new byte[cnt][];
-        ArrayList<Byte> randomBytes = genRandomBytes(blindFactor);
-      //  blinding = HexUtil.append(blinding,randomBytes);
+        byte[] randomBytes = genRandomBytes(blindFactor);
+      //  blinding = utils.HexUtil.append(blinding,randomBytes);
         blinding.add(randomBytes);
         index.add(blinding);
     }

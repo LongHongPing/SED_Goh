@@ -1,4 +1,6 @@
-import com.sun.org.apache.xpath.internal.operations.Bool;
+import utils.BloomFilter;
+import utils.EncUtil;
+import utils.FileUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -43,20 +45,20 @@ public class SearchServer {
             //socket输出流
             PrintWriter printWriter = new PrintWriter(socket.getOutputStream());
             //标准输入
-            BufferedReader bufReader = new BufferedReader(new InputStreamReader(System.in));
+           // BufferedReader bufReader = new BufferedReader(new InputStreamReader(System.in));
             System.out.println("Listening on port: " + serverSocket.getLocalPort());
             String keyword = bufferedReader.readLine();
             while(!keyword.equals("bye")){
-                System.out.println("Server:" + bufferedReader.readLine());
-                ArrayList<ArrayList<Byte>> trapDoors = new ArrayList<>();
+                System.out.println("Server accept keyword: " + bufferedReader.readLine());
+                ArrayList<byte[]> trapDoors = new ArrayList<>();
                 File[] files = FileUtil.getFiles(dirPath);
                 ArrayList<String> results = new ArrayList<>();
                 System.out.println("Checked the following indexes: ");
                 for(File file : files){
                     String fileName = file.getName();
-                    ArrayList<Boolean> index = readIndexFile(dirPath + "/" + file);
-                    BloomFilter bloomFilter = new BloomFilter();
-                    ArrayList<ArrayList<Byte>> codeWords = EncUtil.buildTrapCode(fileName,trapDoors);
+                    ArrayList<Boolean> index = readIndexFile(dirPath + "/" + fileName);
+                    BloomFilter bloomFilter = new BloomFilter(index);
+                    ArrayList<byte[]> codeWords = EncUtil.buildTrapCode(fileName,trapDoors);
                     if(bloomFilter.check(codeWords)){
                         results.add(fileName);
                     }
