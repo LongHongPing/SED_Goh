@@ -26,29 +26,39 @@ public class SearchClient {
     }
     /** 主测试函数 */
     public static void main(String[] args){
+        String readLine = null;
+        String keyFilePath = "keyfiles/";
+
+        System.out.println("=== Client ===");
         try{
             Socket socket = new Socket("127.0.0.1",4700);
-            System.out.println("Enter an keyword: ");
             //标准输入
-            BufferedReader bufReader = new BufferedReader(new InputStreamReader(System.in));
+            BufferedReader systemIn = new BufferedReader(new InputStreamReader(System.in));
             //socket输入
-           // BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            BufferedReader socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             //socket输出
-            PrintWriter printWriter = new PrintWriter(socket.getOutputStream());
-            String line = bufReader.readLine();
-            while(!line.equals("bye")){
+            PrintWriter socketOut = new PrintWriter(socket.getOutputStream());
+
+            while(readLine != "bye"){
                 //System.out.println("Client input word:" + bufferedReader.readLine());
-                String keyFilePath = "/keyfiles";
+                //发送关键字
+                System.out.println("Enter a keyword (type 'bye'to close): ");
+                readLine = systemIn.readLine();
+                socketOut.println(readLine);
+                socketOut.flush();
+                //发送陷门
                 ArrayList<byte[]> hashKeys = readKeys(keyFilePath);
-                ArrayList<byte[]> trapDoors = EncUtil.buildTrapCode(line,hashKeys);
+                ArrayList<byte[]> trapDoors = EncUtil.buildTrapCode(readLine,hashKeys);
                 System.out.println("trans trapdoor to server... ");
-                printWriter.println(trapDoors.toString());
-                printWriter.flush();
-                System.out.println("Enter an another keyword (key 'bye'to close): ");
-                line = bufReader.readLine();
+                socketOut.println(trapDoors.toString());
+                socketOut.flush();
+                //接收结果
+                String results = socketIn.readLine();
+                System.out.println(results);
             }
-            printWriter.close();
-           // bufferedReader.close();
+            systemIn.close();
+            socketIn.close();
+            socketOut.close();
             socket.close();
         }catch (Exception e){
             e.printStackTrace();

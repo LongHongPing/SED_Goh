@@ -17,6 +17,15 @@ public class BuildIndex {
     private static String ENCRYPTION_KEY = "ponmlkjihgfedcba";
     private static String PLAINTEXT = "This is a testes";
 
+    /** 处理关键词 */
+    public static String optWord(String word){
+        String str = word;
+        for (int i = 0; i < 32 - word.length();i++){
+            str = str + ".";
+        }
+        return str;
+    }
+
     public static void main(String[] args) throws Exception{
         String dirPath = "plainFiles/";
         String keyFilePath = "keyFiles/";
@@ -39,11 +48,13 @@ public class BuildIndex {
             String fileName = file.getName();
             System.out.println("Building index for " + fileName);
             List<String> words = FileUtil.getWords(file);
+            System.out.println("Words: " + words);
             int rawSize = words.size();
             //词语去重
             HashSet hashSet = new HashSet(words);
             words.clear();
             words.addAll(hashSet);
+            System.out.println("Clear words: " + words);
             //创建陷门、码字
             //BloomFilter bloomFilter = new BloomFilter();
             for(String keyWord : words){
@@ -55,7 +66,7 @@ public class BuildIndex {
             //写出文件,加密
             FileUtil.write(EncUtil.index.bits.toString(),indexPath + "indexfile" + count + ".txt","UTF-8");
             for(String word : words){
-                byte[] wordByte = EncUtil.aesEncrypt(ENCRYPTION_KEY,word,PLAINTEXT);
+                byte[] wordByte = EncUtil.aesEncrypt(ENCRYPTION_KEY,optWord(word),PLAINTEXT);
                 FileUtil.write(wordByte.toString(),encryPath + fileName,"UTF-8");
             }
             count++;

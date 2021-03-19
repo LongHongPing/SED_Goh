@@ -31,8 +31,10 @@ public class SearchServer {
     public static void main(String[] args){
         ServerSocket serverSocket = null;
         Socket socket = null;
-        String dirPath = "/encry";
+        String dirPath = "indexFiles/";
+        String keyword = null;
 
+        System.out.println("=== Server ===");
         try{
             try{
                 serverSocket = new ServerSocket(4700);
@@ -40,23 +42,29 @@ public class SearchServer {
             }catch (Exception e){
                 e.printStackTrace();
             }
-            //socket输入流
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            //socket输出流
-            PrintWriter printWriter = new PrintWriter(socket.getOutputStream());
-            //标准输入
-           // BufferedReader bufReader = new BufferedReader(new InputStreamReader(System.in));
             System.out.println("Listening on port: " + serverSocket.getLocalPort());
-            String keyword = bufferedReader.readLine();
-            while(!keyword.equals("bye")){
-                System.out.println("Server accept keyword: " + bufferedReader.readLine());
+
+            //socket输入流
+            BufferedReader socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            //socket输出流
+            PrintWriter socketOut = new PrintWriter(socket.getOutputStream());
+
+            while(keyword != "bye"){
+                keyword = socketIn.readLine();
+                System.out.println("Server accept keyword: " + keyword);
+                //处理陷门
+                String trapDoor = socketIn.readLine();
+                System.out.println("Server accept trapdoor: " + trapDoor);
                 ArrayList<byte[]> trapDoors = new ArrayList<>();
                 File[] files = FileUtil.getFiles(dirPath);
                 ArrayList<String> results = new ArrayList<>();
+
+                //查找文件
                 System.out.println("Checked the following indexes: ");
                 for(File file : files){
                     String fileName = file.getName();
-                    ArrayList<Boolean> index = readIndexFile(dirPath + "/" + fileName);
+                    ArrayList<Boolean> index = readIndexFile(dirPath + fileName);
+                    System.out.println("Search in " + fileName);
                     BloomFilter bloomFilter = new BloomFilter(index);
                     ArrayList<byte[]> codeWords = EncUtil.buildTrapCode(fileName,trapDoors);
                     if(bloomFilter.check(codeWords)){
@@ -64,17 +72,17 @@ public class SearchServer {
                     }
                 }
                 if(!results.isEmpty()){
-                    printWriter.print("Keyword matches found: ");
+                    socketOut.print("Keyword matches found: ");
                     for(String res : results){
-                        printWriter.print(", " + res);
+                        socketOut.print(res + " ");
                     }
-                    printWriter.println(".");
                 }else{
-                    printWriter.println("No matches found.");
+                    socketOut.println("No matches found.");
                 }
+                socketOut.flush();
             }
-            bufferedReader.close();
-            printWriter.close();
+            socketIn.close();
+            socketOut.close();
             socket.close();
             serverSocket.close();
         }catch (Exception exp){

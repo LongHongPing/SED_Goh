@@ -22,14 +22,24 @@ public class BloomFilter {
     public static ArrayList<Integer> findPosition(ArrayList<byte[]> codeWords){
         //int[] indexPositions = new int[cnt];
         ArrayList<Integer> indexPositions = new ArrayList<>();
-        int i = 0;
         for(byte[] codeWord : codeWords){
-            int x = codeWord[i++];
+            int x = findUint(codeWord);
+            if(x < 0){
+                return null;
+            }
             indexPositions.add(x%DEFAULT_SIZE);
         }
+       // System.out.println(indexPositions);
         return indexPositions;
     }
-
+    private static int findUint(byte[] codeword){
+        for(byte tmp : codeword){
+            if(tmp >= 0){
+                return tmp;
+            }
+        }
+        return -1;
+    }
     /** 添加内容 */
     public void add(ArrayList<byte[]> codeWords) {
        ArrayList<Integer> position = findPosition(codeWords);
